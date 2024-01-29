@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "197809060199",
+    "project_id": "sunset-1df20",
+    "storage_bucket": "sunset-1df20.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:197809060199:android:9979b1f25773ec64bf17c2",
+        "android_client_info": {
+          "package_name": "com.example.chatsunset"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdSVWSpn1Y6k6w0C1jmEYaV2DAodZIPwU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,20 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.ChatSunset" parent="Theme.Material3.DayNight">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="windowActionBar">true</item>
+        <item name="android:statusBarColor" >?attr/colorPrimary</item>
+    </style>
+
+    <style name="Theme.ChatSunset" parent="Base.Theme.ChatSunset" />
+    <style name="Theme.ChatSunset.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="ShapeAppearanceOverlay.App.CornerSize50PerCent" parent="">
+        <item name="cornerSize">50%</item>
+    </style>
+</resources>
