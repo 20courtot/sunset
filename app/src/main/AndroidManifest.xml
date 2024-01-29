@@ -13,6 +13,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ChatSunset"
         tools:targetApi="31">
+
+        <meta-data
+            android:name="com.google.android.geo.API_key"
+            android:value="@string/google_mpa_api_key"/>
         <activity
             android:name=".activities.SettingsActivity"
             android:label="Mon compte"
