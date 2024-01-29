@@ -27,7 +27,6 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private var currentUser: FirebaseUser? = null
-
     lateinit var fabSendMessage :FloatingActionButton
     lateinit var editMessage :EditText
     lateinit var rvChatList : RecyclerView
@@ -86,7 +85,7 @@ class ChatActivity : AppCompatActivity() {
                 )
                 editMessage.setText("")
                 // cacher le clavier
-                val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                val inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                 inputMethodManager.hideSoftInputFromWindow(editMessage.windowToken,0)
 
                 db.collection("messages").add(message)
@@ -106,17 +105,30 @@ class ChatActivity : AppCompatActivity() {
                     }.addOnFailureListener {
                         Log.e("ChatActivity","Erreur lors de l'enajout de l'ami",it)
                     }
-                /*val friend2 = Friend("",user.pseudo,message.text,timestamp = System.currentTimeMillis(), image = user.image ?: "")
+
                 db.collection("users")
-                    .document(user.uuid)
-                    .collection("friends")
                     .document(currentUser!!.uid)
-                    .set(friend2)
-                    .addOnSuccessListener {
-                        Log.d("ChatActivity","Ami ajouté")
-                    }.addOnFailureListener {
-                        Log.e("ChatActivity","Erreur lors de l'enajout de l'ami",it)
-                    }*/ // A CHANGER
+                    .get()
+                    .addOnSuccessListener {result ->
+                        if(result != null){
+                            var user2 = result.toObject(User::class.java)
+                            user2?.let{
+                                user2.uuid = currentUser!!.uid
+                                val friend2 = Friend("",user2.pseudo,message.text,timestamp = System.currentTimeMillis(), image = user2.image ?: "")
+                                db.collection("users")
+                                    .document(user.uuid)
+                                    .collection("friends")
+                                    .document(currentUser!!.uid)
+                                    .set(friend2)
+                                    .addOnSuccessListener {
+                                        Log.d("ChatActivity","Ami ajouté")
+                                    }.addOnFailureListener {
+                                        Log.e("ChatActivity","Erreur lors de l'enajout de l'ami",it)
+                                    } // A CHANGER
+                            }
+                        }
+                    }
+
             }
         }
 
