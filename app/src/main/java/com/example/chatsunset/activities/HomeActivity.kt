@@ -28,6 +28,7 @@ class HomeActivity : AppCompatActivity() {
 
     lateinit var rvFriends: RecyclerView
     lateinit var fabChat: FloatingActionButton
+    lateinit var fabMap: FloatingActionButton
     lateinit var friendsRecyclerAdaper: FriendsRecyclerAdaper
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,6 +43,12 @@ class HomeActivity : AppCompatActivity() {
         fabChat = findViewById(R.id.fabChat)
         fabChat.setOnClickListener{
             Intent(this, UsersSearchActivity::class.java).also {
+                startActivity(it)
+            }
+        }
+        fabMap = findViewById(R.id.fabMap)
+        fabMap.setOnClickListener{
+            Intent(this, MapActivity::class.java).also {
                 startActivity(it)
             }
         }
