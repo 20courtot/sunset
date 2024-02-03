@@ -1,6 +1,8 @@
 package com.example.chatsunset.activities
 
 import android.app.Instrumentation.ActivityResult
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import androidx.appcompat.app.AppCompatActivity
@@ -41,6 +43,7 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
 
         auth = Firebase.auth
         db = Firebase.firestore
@@ -76,9 +79,9 @@ class SettingsActivity : AppCompatActivity() {
         }else{
             Log.d("SettingsActivity", "PAs d'utilisateur")
         }
-
-
-
+    }
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
     }
     private fun setUserData(user : User){
         layoutTextInputEmail.editText?.setText(user.email)

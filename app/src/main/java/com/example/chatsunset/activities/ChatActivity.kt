@@ -1,6 +1,8 @@
 package com.example.chatsunset.activities
 
 import android.content.Context
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -38,6 +40,7 @@ class ChatActivity : AppCompatActivity() {
         auth = Firebase.auth
         db = Firebase.firestore
         currentUser = auth.currentUser
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
 
         fabSendMessage = findViewById((R.id.fabSendMessage))
         editMessage = findViewById((R.id.editMessage))
@@ -61,7 +64,9 @@ class ChatActivity : AppCompatActivity() {
             }
 
     }
-
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+    }
     private fun setUserData(user: User) {
 
         supportActionBar?.title = user.pseudo

@@ -1,6 +1,8 @@
 package com.example.chatsunset.activities
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.example.chatsunset.R
@@ -23,6 +25,7 @@ class RegisterActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
 
         auth = Firebase.auth
         btnRegister = findViewById(R.id.btnRegister)
@@ -86,6 +89,9 @@ class RegisterActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
     }
     private fun initErrors(){
         layoutTextInputPseudo.isErrorEnabled = false

@@ -1,5 +1,7 @@
 package com.example.chatsunset.activities
 
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
@@ -30,6 +32,7 @@ class UsersSearchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_users_search)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
 
         auth = Firebase.auth
         db = Firebase.firestore
@@ -78,5 +81,8 @@ class UsersSearchActivity : AppCompatActivity() {
             }
 
         })
+    }
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
     }
 }

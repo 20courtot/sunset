@@ -1,6 +1,8 @@
 package com.example.chatsunset.activities
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -24,6 +26,7 @@ class AuthentificationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_authentification)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
 
         auth = Firebase.auth
         tvRegister = findViewById(R.id.tvRegister)
@@ -34,7 +37,9 @@ class AuthentificationActivity : AppCompatActivity() {
 
 
     }
-
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+    }
     override fun onStart() {
         super.onStart()
         tvRegister.setOnClickListener{
