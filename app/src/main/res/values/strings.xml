@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">ChatSunset</string>
-    <string name="google_mpa_api_key">AIzaSyD9Ukx909nukGqRM8__SQDExTLS8vBtIOc</string>
+    <string name="google_map_api_key" templateMergeStrategy="preserve" translatable="false">AIzaSyAV_v4G74fc8Hr2zI-4WELmfU9LXu9D8To</string>
 </resources>
