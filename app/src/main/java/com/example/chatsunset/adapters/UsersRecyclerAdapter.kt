@@ -60,9 +60,11 @@ class UsersRecyclerAdapter: RecyclerView.Adapter<UsersRecyclerAdapter.ViewHolder
         val tvPseudo : TextView = itemView.findViewById(R.id.tvPseudo)
 
         fun bind(user: User) {
+            // on reprend la première lettre du pseudo pour l'afficher dans le cercle
             tvShortPseudo.text = user.pseudo[0].toString()
             tvPseudo.text = user.pseudo
 
+            // click sur l'utilisateur dans la liste redirige vers l'activity chat avec l'uid de l'utilisateur
             itemView.setOnClickListener {
                 Intent(itemView.context,ChatActivity::class.java).also{
                     it.putExtra("friend",user.uuid)

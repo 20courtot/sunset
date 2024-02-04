@@ -44,10 +44,11 @@ class FriendsRecyclerAdaper : RecyclerView.Adapter<FriendsRecyclerAdaper.ViewHol
             tvLastMsg.text = friend.lastMsg
             val sdf = SimpleDateFormat("HH:mm")
             tvHour.text = sdf.format(Date(friend.timestamp))
+            // affichage de l'image si il y en a une sinon affichage de l'avatar
             if(friend.image.isNotEmpty()){
                 Glide.with(itemView.context).load(friend.image).placeholder(R.drawable.avatar).into(ivFriend)
             }
-
+            // click sur l'item redirige vers l'activity chat avec l'uid de l'utilisateur
             itemView.setOnClickListener {
                 Intent(itemView.context, ChatActivity::class.java).also{
                     it.putExtra("friend",friend.uuid)

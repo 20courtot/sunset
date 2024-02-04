@@ -43,8 +43,11 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+
+        //suivi de l'orientation de l'écran
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
 
+        // Definition des variables (authentification + elements du layout)
         auth = Firebase.auth
         db = Firebase.firestore
         currentUser = auth.currentUser
@@ -54,6 +57,7 @@ class SettingsActivity : AppCompatActivity() {
         layoutTextInputPseudo = findViewById(R.id.layoutTextInputPseudo)
         btnSave = findViewById(R.id.btnSave)
 
+        // Affichage d'un avatar par défaut
         val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()){
             it?.let{
                 Glide.with(this).load(it).placeholder(R.drawable.avatar).into(ivUser)
@@ -61,6 +65,7 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
+        // click sur l'image ouverture de la selection de photo du telephone
         ivUser.setOnClickListener{
             pickImage.launch("image/*")
         }
@@ -80,20 +85,26 @@ class SettingsActivity : AppCompatActivity() {
             Log.d("SettingsActivity", "PAs d'utilisateur")
         }
     }
+
+    //suivi de l'orientation de l'écran
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
     }
     private fun setUserData(user : User){
+        // insertion de l'email et pseudo dans les inputs
         layoutTextInputEmail.editText?.setText(user.email)
         layoutTextInputPseudo.editText?.setText(user.pseudo)
 
+        // Affichage de l'image si il y en a une
         user.image?.let{
             Glide.with(this).load(it).placeholder(R.drawable.avatar).into(ivUser)
         }
 
+        // click sur le bouton sauvegarder
         btnSave.setOnClickListener {
             layoutTextInputPseudo.isErrorEnabled = false
 
+            //Si l'image a été modifiée ou si seulement les infos ou rien n'a été modifié
             if(isImageChanged){
                 uploadImageToStorage(user)
             }else if(layoutTextInputPseudo.editText?.text.toString() != user.pseudo){
@@ -102,17 +113,19 @@ class SettingsActivity : AppCompatActivity() {
                 Toast.makeText(this, "Tout est à jour!",Toast.LENGTH_LONG).show()
                 layoutTextInputPseudo.clearFocus()
             }
-
-
         }
     }
 
+    // Ajout de l'image dans le storage
     private fun uploadImageToStorage(user: User) {
+        // On reference l'image aves uid de l'utilisateur pour la retrouvé
         val storageRef = Firebase.storage.reference
         val imageRef = storageRef.child("images/${user.uuid}")
 
+        // récupératio en bits
         val bitmap = (ivUser.drawable as BitmapDrawable).bitmap
 
+        // compression de l'image
         val baos = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
         val data = baos.toByteArray()
@@ -121,16 +134,19 @@ class SettingsActivity : AppCompatActivity() {
         uploadTask.addOnSuccessListener {
             imageRef.downloadUrl.addOnSuccessListener { uri ->
                 user.image =  uri.toString()
+                // modif aussi du pseudo
                 updatuserData(user)
             }
         }
     }
 
     private fun updatuserData(user: User) {
+        //Récupération et affichage des variables modifiées
         var updatedUser = hashMapOf<String ,Any>(
             "pseudo" to layoutTextInputPseudo.editText?.text.toString(),
             "image" to (user.image ?:"")
         )
+        // insertion dans firebase
         db.collection("users").document(user.uuid).update(updatedUser).addOnSuccessListener {
             Toast.makeText(this, "Informations modifiées !",Toast.LENGTH_LONG).show()
         }.addOnFailureListener {

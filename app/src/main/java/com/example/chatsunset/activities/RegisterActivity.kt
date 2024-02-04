@@ -25,8 +25,11 @@ class RegisterActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
+
+        //suivi de l'orientation de l'écran
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
 
+        // Definition des variables (authentification + elements du layout)
         auth = Firebase.auth
         btnRegister = findViewById(R.id.btnRegister)
         layoutTextInputPseudo = findViewById(R.id.layoutTextInputPseudo)
@@ -34,13 +37,15 @@ class RegisterActivity : AppCompatActivity() {
         layoutTextInputPassword = findViewById(R.id.layoutTextInputPassword)
         layoutTextInputConfirmPassword = findViewById(R.id.layoutTextInputConfirmPassword)
 
+        // click sur le bouton enregistrer
         btnRegister.setOnClickListener{
             initErrors()
+            // reset des erreurs
             val pseudo = layoutTextInputPseudo.editText?.text.toString()
             val email = layoutTextInputEmail.editText?.text.toString()
             val password = layoutTextInputPassword.editText?.text.toString()
             val confirmPassword = layoutTextInputConfirmPassword.editText?.text.toString()
-
+            //verification de remplissage sur les inputs
             if(pseudo.isEmpty() ||email.isEmpty() ||password.isEmpty() || confirmPassword.isEmpty()){
                 if(pseudo.isEmpty()){
                     layoutTextInputPseudo.error = "Champ requis!"
@@ -59,11 +64,12 @@ class RegisterActivity : AppCompatActivity() {
                     layoutTextInputConfirmPassword.isErrorEnabled = true
                 }
             }else{
+                // On verifie que le mot de passe et la confirmation sont égal
                 if(password != confirmPassword){
                     layoutTextInputConfirmPassword.error = "Le mot de passe ne correspond pas!"
                     layoutTextInputConfirmPassword.isErrorEnabled = true
                 }else{
-                    //creation pour modul authentification
+                    //creation pour module authentification
                     auth.createUserWithEmailAndPassword(email,password).addOnCompleteListener { task ->
                         if(task.isSuccessful){
                             // creation firestore
@@ -73,6 +79,7 @@ class RegisterActivity : AppCompatActivity() {
                             )
                             val currentUser = auth.currentUser
                             val db = Firebase.firestore
+                            // ajout dans la collection
                             db.collection("users").document(currentUser!!.uid).set(user).addOnSuccessListener {
                                 Intent(this,HomeActivity::class.java).also{
                                     startActivity(it)
@@ -90,6 +97,7 @@ class RegisterActivity : AppCompatActivity() {
             }
         }
     }
+    //suivi de l'orientation de l'écran
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
     }

@@ -32,8 +32,11 @@ class UsersSearchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_users_search)
+
+        //suivi de l'orientation de l'écran
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
 
+        // Definition des variables (authentification + elements du layout)
         auth = Firebase.auth
         db = Firebase.firestore
         currentUser = auth.currentUser
@@ -48,7 +51,7 @@ class UsersSearchActivity : AppCompatActivity() {
         }
 
         val users = mutableListOf<User>()
-
+        // recuperation de la liste des utilisateurs sans l'utilisateur connécté
         db.collection("users")
             .whereNotEqualTo("email", currentUser?.email)
             .get()
@@ -72,6 +75,7 @@ class UsersSearchActivity : AppCompatActivity() {
 
             }
 
+            // filtrage de la liste au changement dans l'input de recherche
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 usersRecyclerAdapter.filter.filter(s.toString())
             }
@@ -82,6 +86,8 @@ class UsersSearchActivity : AppCompatActivity() {
 
         })
     }
+
+    //suivi de l'orientation de l'écran
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
     }

@@ -36,20 +36,25 @@ class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
+
+        //suivi de l'orientation de l'écran
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
 
+        // Definition des variables (authentification + elements du layout)
         auth = Firebase.auth
         db = Firebase.firestore
         currentUser = auth.currentUser!!
 
         rvFriends = findViewById(R.id.rvFriends)
         fabChat = findViewById(R.id.fabChat)
+        // click sur le bouton en bas à droite redirige vers l'activity usersSearch
         fabChat.setOnClickListener{
             Intent(this, UsersSearchActivity::class.java).also {
                 startActivity(it)
             }
         }
         fabMap = findViewById(R.id.fabMap)
+        //click sur le bouton en bas à gauche redirige vers l'activity map
         fabMap.setOnClickListener{
             Intent(this, MapActivity::class.java).also {
                 startActivity(it)
@@ -57,6 +62,8 @@ class HomeActivity : AppCompatActivity() {
         }
 
     }
+
+    //suivi de l'orientation de l'écran
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
     }
@@ -72,7 +79,7 @@ class HomeActivity : AppCompatActivity() {
             adapter = friendsRecyclerAdaper
         }
 
-        //recuperation des derniers messages
+        //recuperation de la liste des amis avec les derniers messages
         db.collection("users")
             .document(currentUser!!.uid)
             .collection("friends").get()
@@ -87,19 +94,21 @@ class HomeActivity : AppCompatActivity() {
                 Log.e("HomeActivity", "erreur lors de la lecture de la liste d'amis",it)
             }
     }
-
+    //ajout des boutons dans le menu
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_home,menu)
         return super.onCreateOptionsMenu(menu)
     }
 
+    // click sur les boutons du menu
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        //click sur le bouton paramètre redirige vers l'activity settings
         if(item.itemId == R.id.itemSettings){
             Intent(this,SettingsActivity::class.java).also{
                 startActivity(it)
             }
         }
-
+        //click sur le bouton deconnexion appel la fonction signout de firebase et redirige vers l'activity authentification
         if(item.itemId == R.id.itemLogout){
             val auth = Firebase.auth
             auth.signOut()

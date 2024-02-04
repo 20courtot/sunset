@@ -24,6 +24,7 @@ class ChatRecyclerAdapter : RecyclerView.Adapter<ChatRecyclerAdapter.ViewHolder>
     }
 
     override fun getItemViewType(position: Int): Int {
+        // chat mis a gauche pour les message reçu et à droite pour les messages envoyés
         val res = when(items[position].isReceived){
             true -> R.layout.item_chat_left
             false -> R.layout.item_chat_right
@@ -40,6 +41,7 @@ class ChatRecyclerAdapter : RecyclerView.Adapter<ChatRecyclerAdapter.ViewHolder>
         val tvMessage : TextView = itemView.findViewById(R.id.tvMsg)
         val tvHour : TextView = itemView.findViewById(R.id.tvHour)
 
+        // affichage du message avec la date
         fun bind(message : Message){
             tvMessage.text = message.text
             val sdf = SimpleDateFormat("HH:mm")
