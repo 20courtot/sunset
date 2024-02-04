@@ -6,14 +6,29 @@
     android:layout_height="match_parent"
     tools:context=".activities.HomeActivity">
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabDarkMode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="173dp"
+        android:layout_marginBottom="14dp"
+        android:backgroundTint="@color/colorPrimary"
+        android:src="@drawable/pnglogo"
+
+        app:fabSize="normal" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvFriends"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="6dp"
-        tools:listitem="@layout/item_friend"
+        android:layout_marginStart="6dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginEnd="6dp"
+        android:layout_marginBottom="6dp"
         tools:itemCount="3"
-        />
+        tools:listitem="@layout/item_friend" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabChat"

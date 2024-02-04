@@ -1,5 +1,6 @@
 package com.example.chatsunset.activities
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
@@ -8,7 +9,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Switch
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.chatsunset.R
@@ -20,7 +23,6 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
 
 class HomeActivity : AppCompatActivity() {
@@ -31,8 +33,11 @@ class HomeActivity : AppCompatActivity() {
     lateinit var rvFriends: RecyclerView
     lateinit var fabChat: FloatingActionButton
     lateinit var fabMap: FloatingActionButton
+    lateinit var fabDarkMode: FloatingActionButton
     lateinit var friendsRecyclerAdaper: FriendsRecyclerAdaper
 
+
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -61,6 +66,22 @@ class HomeActivity : AppCompatActivity() {
             }
         }
 
+        fabDarkMode = findViewById(R.id.fabDarkMode)
+
+        fabDarkMode.setOnClickListener {
+            toggleDarkMode()
+        }
+    }
+
+    private fun toggleDarkMode() {
+        val isNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+        if (isNightMode) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            Toast.makeText(this, "Mode clair activé", Toast.LENGTH_SHORT).show()
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            Toast.makeText(this, "Mode sombre activé", Toast.LENGTH_SHORT).show()
+        }
     }
 
     //suivi de l'orientation de l'écran

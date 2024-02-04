@@ -1,14 +1,22 @@
 package com.example.chatsunset.activities
 
-import android.content.Context
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.inputmethodservice.InputMethodService
+import android.graphics.Bitmap
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.inputmethod.InputMethodManager
+import android.widget.Button
 import android.widget.EditText
+import android.widget.Toast
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.chatsunset.R
@@ -26,26 +34,29 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 class ChatActivity : AppCompatActivity() {
+    lateinit var btnPrendrePhoto :FloatingActionButton
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private var currentUser: FirebaseUser? = null
     lateinit var fabSendMessage :FloatingActionButton
+    lateinit var fabTakePhoto :FloatingActionButton
     lateinit var editMessage :EditText
     lateinit var rvChatList : RecyclerView
     lateinit var chatRecyclerAdapter :ChatRecyclerAdapter
-
+    val REQUEST_IMAGE_CAPTURE = 1 //Pour les permissions
+    val CAMERA_PERMISSION_REQUEST_CODE = 0 // Pour les permissions
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
         //suivi de l'orientation de l'écran
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
 
-
         // Definition des variables (authentification + elements du layout)
         auth = Firebase.auth
         db = Firebase.firestore
         currentUser = auth.currentUser
 
+        fabTakePhoto = findViewById((R.id.fabTakePhoto))
         fabSendMessage = findViewById((R.id.fabSendMessage))
         editMessage = findViewById((R.id.editMessage))
         rvChatList = findViewById((R.id.rvChatList))
@@ -146,6 +157,45 @@ class ChatActivity : AppCompatActivity() {
 
             }
         }
+
+        fun dispatchTakePictureIntent() {
+            val cameraPermission = Manifest.permission.CAMERA
+            if (ContextCompat.checkSelfPermission(this, cameraPermission) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(cameraPermission), CAMERA_PERMISSION_REQUEST_CODE)
+            } else {
+                val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+                if (takePictureIntent.resolveActivity(packageManager) != null) {
+                    startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+                } else {
+                    Toast.makeText(this, "Impossible d'ouvrir l'appareil photo", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+            if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // La permission de la caméra a été accordée, vous pouvez maintenant utiliser la caméra
+                    dispatchTakePictureIntent() // Redéclencher l'intent après l'obtention de la permission
+                } else {
+                    // La permission de la caméra a été refusée, vous pouvez informer l'utilisateur ici
+                    Toast.makeText(this, "Permission de la caméra refusée", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+            super.onActivityResult(requestCode, resultCode, data)
+            if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
+                val imageBitmap = data?.extras?.get("data") as Bitmap
+            }
+        }
+
+        fabTakePhoto.setOnClickListener {
+            dispatchTakePictureIntent() // Appeler la fonction dispatchTakePictureIntent lorsque le bouton est cliqué
+        }
+
 
         // recupertation des messages envoyés
         val sentQuery= db.collection("messages")

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+        <!-- Thème clair avec une barre d'action sombre -->
+        <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+            <!-- Autres attributs du thème -->
+        </style>
+</resources>

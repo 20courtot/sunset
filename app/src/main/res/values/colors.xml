@@ -5,4 +5,7 @@
     <color name="grey">#C3C3C3</color>
     <color name="colorSecondary">#E58B65</color>
     <color name="colorPrimary">#AE73FF</color>
+
+    <color name="background_dark">@color/black</color>
+    <color name="text_primary_dark">@color/white</color>
 </resources>
