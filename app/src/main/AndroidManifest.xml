@@ -21,7 +21,10 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_map_api_key" />
 
-        <activity android:name=".activities.MapActivity" />
+        <activity android:name=".activities.MapActivity"
+            android:exported="false"
+            android:label="Map"
+            android:parentActivityName=".activities.HomeActivity"/>
         <activity
             android:name=".activities.SettingsActivity"
             android:exported="false"
