@@ -192,25 +192,6 @@ class ChatActivity : AppCompatActivity() {
             }
         }
 
-        receivedQuery.addSnapshotListener { snapshot, exception ->
-            if (exception != null) {
-                Log.e("ChatActivity", "Erreur lors de la réception des messages")
-                return@addSnapshotListener
-            }
-            for (document in snapshot!!.documents) {
-                val message = document.toObject(Message::class.java)
-                message?.let {
-                    it.isReceived = true
-                    if (!messages.contains(it)) {
-                        messages.add(it)
-                    }
-                }
-            }
-            if (messages.isNotEmpty()) {
-                chatRecyclerAdapter.items = messages.sortedBy { it.timestamp }.toMutableList()
-                rvChatList.scrollToPosition(messages.size - 1)
-            }
-        }
     }
 
     fun dispatchTakePictureIntent() {

@@ -37,6 +37,7 @@ class ChatActivityRobolectricTest {
     private lateinit var messagesCollection: CollectionReference
     private lateinit var usersCollection: CollectionReference
     private lateinit var documentReference: DocumentReference
+    private lateinit var query : Query
 
     @Before
     fun setUp() {
@@ -47,6 +48,7 @@ class ChatActivityRobolectricTest {
         messagesCollection = mock(CollectionReference::class.java)
         usersCollection = mock(CollectionReference::class.java)
         documentReference = mock(DocumentReference::class.java)
+        query = mock(Query::class.java)
 
         `when`(auth.currentUser).thenReturn(currentUser)
         `when`(currentUser.uid).thenReturn("dgNgHdgDojXkF7HE9XMrsSgEr6g2")
@@ -56,6 +58,12 @@ class ChatActivityRobolectricTest {
         `when`(usersCollection.document(anyString())).thenReturn(documentReference)
         `when`(messagesCollection.add(any())).thenReturn(Tasks.forResult(mock(DocumentReference::class.java)))
         `when`(documentReference.set(any())).thenReturn(Tasks.forResult(null))
+
+        // Mock chained methods on messagesCollection to return the query mock
+        `when`(messagesCollection.whereEqualTo(anyString(), anyString())).thenReturn(query)
+        `when`(query.whereEqualTo(anyString(), anyString())).thenReturn(query)
+        `when`(query.orderBy(anyString(), any(Query.Direction::class.java))).thenReturn(query)
+        `when`(query.get()).thenReturn(Tasks.forResult(mock(QuerySnapshot::class.java)))
 
         val intent = Intent(ApplicationProvider.getApplicationContext(), ChatActivity::class.java).apply {
             putExtra("friend", "friendUuid")
@@ -99,12 +107,10 @@ class ChatActivityRobolectricTest {
     @Test
     fun testFetchMessages() {
         val user = User("TmJsC1GnQShuTrD1oyNtQASP9853", "laurent@test.com", "Laurent2", null, listOf())
-        val querySnapshot = mock(QuerySnapshot::class.java)
-        val query = mock(Query::class.java)
 
-        `when`(query.get()).thenReturn(Tasks.forResult(querySnapshot))
-        `when`(db.collection("messages").whereEqualTo("sender", currentUser.uid).whereEqualTo("receiver", user.uuid).orderBy("timestamp", Query.Direction.ASCENDING)).thenReturn(query)
-        `when`(db.collection("messages").whereEqualTo("sender", user.uuid).whereEqualTo("receiver", currentUser.uid).orderBy("timestamp", Query.Direction.ASCENDING)).thenReturn(query)
+        `when`(query.get()).thenReturn(Tasks.forResult(mock(QuerySnapshot::class.java)))
+        `when`(messagesCollection.whereEqualTo("sender", currentUser.uid).whereEqualTo("receiver", user.uuid).orderBy("timestamp", Query.Direction.ASCENDING)).thenReturn(query)
+        `when`(messagesCollection.whereEqualTo("sender", user.uuid).whereEqualTo("receiver", currentUser.uid).orderBy("timestamp", Query.Direction.ASCENDING)).thenReturn(query)
 
         activity.fetchMessages(user)
 
