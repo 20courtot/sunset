@@ -21,78 +21,92 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 class UsersSearchActivity : AppCompatActivity() {
-    private lateinit var auth: FirebaseAuth
-    private lateinit var db: FirebaseFirestore
-    private var currentUser: FirebaseUser? = null
+    lateinit var auth: FirebaseAuth
+    lateinit var db: FirebaseFirestore
+    var currentUser: FirebaseUser? = null
 
     lateinit var rvUsers: RecyclerView
     lateinit var editSearch: EditText
+    lateinit var usersRecyclerAdapter: UsersRecyclerAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_users_search)
 
-        // Suivi de l'orientation de l'écran
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+        setupUI()
+        setupFirebase()
+        setupRecyclerView()
+        setupSearchListener()
 
-        // Définition des variables (authentification + éléments du layout)
+        currentUser?.let { user ->
+            fetchCurrentUserInterests(user.uid) { currentUserInterests ->
+                fetchUsers(currentUserInterests)
+            }
+        }
+    }
+
+    private fun setupUI() {
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+        rvUsers = findViewById(R.id.rvUsers)
+        editSearch = findViewById(R.id.editSearch)
+    }
+
+    private fun setupFirebase() {
         auth = Firebase.auth
         db = Firebase.firestore
         currentUser = auth.currentUser
+    }
 
-        rvUsers = findViewById(R.id.rvUsers)
-        editSearch = findViewById(R.id.editSearch)
-
-        val usersRecyclerAdapter = UsersRecyclerAdapter()
+    private fun setupRecyclerView() {
+        usersRecyclerAdapter = UsersRecyclerAdapter()
         rvUsers.apply {
             layoutManager = LinearLayoutManager(this@UsersSearchActivity)
             adapter = usersRecyclerAdapter
         }
+    }
 
-        currentUser?.let { user ->
-            db.collection("users").document(user.uid).get().addOnSuccessListener { result ->
-                val currentUserInterests = result.get("interests") as? List<String> ?: listOf()
-                fetchUsers(usersRecyclerAdapter, currentUserInterests)
-            }
-        }
-
+    private fun setupSearchListener() {
         editSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 usersRecyclerAdapter.filter.filter(s.toString())
             }
-
             override fun afterTextChanged(s: Editable?) {}
         })
     }
 
-    // Suivi de l'orientation de l'écran
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
+    private fun fetchCurrentUserInterests(userId: String, callback: (List<String>) -> Unit) {
+        db.collection("users").document(userId).get().addOnSuccessListener { result ->
+            val currentUserInterests = result.get("interests") as? List<String> ?: listOf()
+            callback(currentUserInterests)
+        }
     }
 
-    private fun fetchUsers(usersRecyclerAdapter: UsersRecyclerAdapter, currentUserInterests: List<String>) {
+    fun fetchUsers(currentUserInterests: List<String>) {
         db.collection("users")
             .whereNotEqualTo("email", currentUser?.email)
             .get()
             .addOnSuccessListener { result ->
-                val users = mutableListOf<User>()
-                for (document in result) {
-                    val uuid = document.id
-                    val email = document.getString("email")
-                    val pseudo = document.getString("pseudo")
-                    val interests = document.get("interests") as? List<String> ?: listOf()
-                    val user = User(uuid, email ?: "", pseudo ?: "", null, interests)
-                    users.add(user)
+                val users = result.map { document ->
+                    User(
+                        uuid = document.id,
+                        email = document.getString("email") ?: "",
+                        pseudo = document.getString("pseudo") ?: "",
+                        image = null,
+                        interests = document.get("interests") as? List<String> ?: listOf()
+                    )
                 }
-                val sortedUsers = users.sortedByDescending { user ->
-                    calculateCommonInterests(currentUserInterests, user.interests ?: listOf())
-                }.take(10)
-                usersRecyclerAdapter.items = sortedUsers.toMutableList()
+                updateRecyclerView(users, currentUserInterests)
             }.addOnFailureListener { exception ->
                 Log.e("UsersSearchActivity", "Erreur récupération des utilisateurs", exception)
             }
+    }
+
+    private fun updateRecyclerView(users: List<User>, currentUserInterests: List<String>) {
+        val sortedUsers = users.sortedByDescending { user ->
+            calculateCommonInterests(currentUserInterests, user.interests ?: listOf())
+        }.take(10)
+        usersRecyclerAdapter.items = sortedUsers.toMutableList()
     }
 
     fun calculateCommonInterests(currentUserInterests: List<String>, userInterests: List<String>): Int {

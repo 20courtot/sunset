@@ -10,6 +10,7 @@ import android.util.Log
 import android.widget.CheckBox
 import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import com.bumptech.glide.Glide
 import com.example.chatsunset.R
@@ -23,61 +24,81 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.ktx.storage
 import java.io.ByteArrayOutputStream
 
 class SettingsActivity : AppCompatActivity() {
 
-    private lateinit var auth: FirebaseAuth
+    lateinit var auth: FirebaseAuth
     lateinit var db: FirebaseFirestore
-    private var currentUser: FirebaseUser? = null
+    lateinit var storage: FirebaseStorage
+    var currentUser: FirebaseUser? = null
 
     lateinit var ivUser: ShapeableImageView
     lateinit var layoutTextInputEmail: TextInputLayout
     lateinit var layoutTextInputPseudo: TextInputLayout
     lateinit var btnSave: MaterialButton
+    lateinit var interestCheckboxes: LinearLayout
+
     var isImageChanged = false
     var areInterestsChanged = false
-
-    lateinit var interestCheckboxes: LinearLayout
     private val interests = listOf("Sport", "Music", "Movies", "Travel", "Games", "Reading")
+    lateinit var pickImage: ActivityResultLauncher<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
+        initializeScreenOrientation()
+        initializeFirebase()
+        setupUI()
+    }
 
-        // Suivi de l'orientation de l'écran
+    private fun initializeScreenOrientation() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+    }
 
-        // Définition des variables (authentification + éléments du layout)
+    fun initializeFirebase() {
         auth = Firebase.auth
         db = Firebase.firestore
         currentUser = auth.currentUser
+        storage = Firebase.storage
+    }
 
+    private fun setupUI() {
         ivUser = findViewById(R.id.ivUser)
         layoutTextInputEmail = findViewById(R.id.layoutTextInputEmail)
         layoutTextInputPseudo = findViewById(R.id.layoutTextInputPseudo)
         btnSave = findViewById(R.id.btnSave)
         interestCheckboxes = findViewById(R.id.interestCheckboxes)
 
-        // Affichage d'un avatar par défaut
-        val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) {
+        setupDefaultImagePicker()
+        setupProfileImageClickListener()
+        populateInterestsCheckboxes()
+
+        loadUserData()
+    }
+
+    fun setupDefaultImagePicker() {
+        pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) {
             it?.let {
                 Glide.with(this).load(it).placeholder(R.drawable.avatar).into(ivUser)
                 isImageChanged = true
             }
         }
+    }
 
-        // Click sur l'image ouverture de la sélection de photo du téléphone
+    private fun setupProfileImageClickListener() {
         ivUser.setOnClickListener {
             pickImage.launch("image/*")
         }
+    }
 
-        // Ajouter des cases à cocher pour les centres d'intérêt
-        for (interest in interests) {
+    fun populateInterestsCheckboxes() {
+        interests.forEach { interest ->
             val checkBox = CheckBox(this).apply {
                 text = interest
-                tag = interest // Ajouter un tag pour identifier la case
+                tag = interest
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
@@ -85,104 +106,98 @@ class SettingsActivity : AppCompatActivity() {
             }
             interestCheckboxes.addView(checkBox)
         }
+    }
 
+    fun loadUserData() {
         if (currentUser != null) {
             db.collection("users").document(currentUser!!.uid).get().addOnSuccessListener { result ->
-                if (result != null) {
-                    var user = result.toObject(User::class.java)
-                    user?.let {
-                        user.uuid = currentUser!!.uid
-                        setUserData(user)
-                    }
+                result.toObject(User::class.java)?.let { user ->
+                    user.uuid = currentUser!!.uid
+                    setUserData(user)
                 }
             }
         } else {
-            Log.d("SettingsActivity", "Pas d'utilisateur")
+            Log.d("SettingsActivity", "No user logged in")
         }
-    }
-
-    // Suivi de l'orientation de l'écran
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
     }
 
     fun setUserData(user: User) {
-        // Insertion de l'email et pseudo dans les inputs
         layoutTextInputEmail.editText?.setText(user.email)
         layoutTextInputPseudo.editText?.setText(user.pseudo)
-
-        // Affichage de l'image s'il y en a une
-        user.image?.let {
-            Glide.with(this).load(it).placeholder(R.drawable.avatar).into(ivUser)
+        if (user.image != null) {
+            Glide.with(this).load(user.image).placeholder(R.drawable.avatar).into(ivUser)
+        } else {
+            Glide.with(this).load(R.drawable.avatar).into(ivUser)
         }
-
-        // Sélectionner les centres d'intérêt de l'utilisateur
         user.interests?.forEach { interest ->
-            val checkBox = interestCheckboxes.findViewWithTag<CheckBox>(interest)
-            checkBox?.isChecked = true
+            interestCheckboxes.findViewWithTag<CheckBox>(interest)?.isChecked = true
         }
+        setupSaveButtonClickListener(user)
+    }
 
-        // Click sur le bouton sauvegarder
+    private fun setupSaveButtonClickListener(user: User) {
         btnSave.setOnClickListener {
-            layoutTextInputPseudo.isErrorEnabled = false
-
-            // Récupérer les centres d'intérêt sélectionnés
-            val selectedInterests = mutableListOf<String>()
-            for (i in 0 until interestCheckboxes.childCount) {
-                val checkBox = interestCheckboxes.getChildAt(i) as CheckBox
-                if (checkBox.isChecked) {
-                    selectedInterests.add(checkBox.text.toString())
-                }
-            }
-
-            // Vérifier si les centres d'intérêt ont changé
-            areInterestsChanged = user.interests != selectedInterests
-            user.interests = selectedInterests
-
-            // Si l'image a été modifiée ou si seulement les infos ou rien n'a été modifié
-            if (isImageChanged) {
-                uploadImageToStorage(user)
-            } else if (layoutTextInputPseudo.editText?.text.toString() != user.pseudo || areInterestsChanged) {
-                updatuserData(user)
-            } else {
-                Toast.makeText(this, "Tout est à jour!", Toast.LENGTH_LONG).show()
-                layoutTextInputPseudo.clearFocus()
-            }
+            saveUserData(user)
         }
     }
 
-    // Ajout de l'image dans le storage
-    fun uploadImageToStorage(user: User) {
-        // On référence l'image avec uid de l'utilisateur pour la retrouver
+    fun saveUserData(user: User) {
+        val selectedInterests = collectSelectedInterests()
+        user.interests = selectedInterests
+        checkInterestChanges(user)
+        handleUserDataUpdate(user)
+    }
+
+    private fun collectSelectedInterests(): MutableList<String> {
+        val selectedInterests = mutableListOf<String>()
+        for (i in 0 until interestCheckboxes.childCount) {
+            (interestCheckboxes.getChildAt(i) as? CheckBox)?.let {
+                if (it.isChecked) {
+                    selectedInterests.add(it.text.toString())
+                }
+            }
+        }
+        return selectedInterests
+    }
+
+    private fun checkInterestChanges(user: User) {
+        val currentInterests = collectSelectedInterests()
+        areInterestsChanged = user.interests != currentInterests
+    }
+
+    private fun handleUserDataUpdate(user: User) {
+        if (isImageChanged) {
+            uploadImageToStorage(user)
+        } else if (layoutTextInputPseudo.editText?.text.toString() != user.pseudo || areInterestsChanged) {
+            updateUserData(user)
+        } else {
+            Toast.makeText(this, "All information is up to date!", Toast.LENGTH_LONG).show()
+            layoutTextInputPseudo.clearFocus()
+        }
+    }
+
+    private fun uploadImageToStorage(user: User) {
         val storageRef = Firebase.storage.reference
         val imageRef = storageRef.child("images/${user.uuid}")
-
-        // Récupération en bits
         val bitmap = (ivUser.drawable as BitmapDrawable).bitmap
-
-        // Compression de l'image
         val baos = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
         val data = baos.toByteArray()
-        // Upload au storage
         val uploadTask = imageRef.putBytes(data)
         uploadTask.addOnSuccessListener {
             imageRef.downloadUrl.addOnSuccessListener { uri ->
                 user.image = uri.toString()
-                // Modification aussi du pseudo
-                updatuserData(user)
+                updateUserData(user)
             }
         }
     }
 
-    fun updatuserData(user: User) {
-        // Récupération et affichage des variables modifiées
-        val updatedUser = hashMapOf<String, Any>(
+    private fun updateUserData(user: User) {
+        val updatedUser = hashMapOf(
             "pseudo" to layoutTextInputPseudo.editText?.text.toString(),
             "image" to (user.image ?: ""),
             "interests" to user.interests!!
         )
-        // Insertion dans Firebase
         db.collection("users").document(user.uuid).update(updatedUser).addOnSuccessListener {
             Toast.makeText(this, "Informations modifiées !", Toast.LENGTH_LONG).show()
         }.addOnFailureListener {

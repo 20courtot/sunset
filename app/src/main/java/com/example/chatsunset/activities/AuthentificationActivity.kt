@@ -3,10 +3,9 @@ package com.example.chatsunset.activities
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import com.example.chatsunset.R
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
@@ -20,7 +19,7 @@ class AuthentificationActivity : AppCompatActivity() {
     lateinit var  textInputLayoutEmail:TextInputLayout
     lateinit var  textInputLayoutPassword:TextInputLayout
     lateinit var  btnConnect:MaterialButton
-    private lateinit var auth: FirebaseAuth;
+    lateinit var auth: FirebaseAuth;
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
